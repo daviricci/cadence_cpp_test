@@ -4,14 +4,11 @@
 
 
 int main() {
-    std::ofstream ofs("test.txt");
-    core::Bomb b(58888, 178780, 5);
-    ofs << b;
-    ofs.close();
-    core::Bomb b2;
-    std::ifstream ifs("test.txt");
-    ifs >> b2;
-    std::cout<<b2;
+    core::Bomb b1(2, 2, 3);
+    core::Bomb b2(5, 6, 2);
+    core::Bomb b3(9, 9, 1);
+    b1.it_is_connected(&b2);
+    std::cout<<core::calculate_distance_between_bomb_and_vertical(&b2,5);
     bool a = true;
     return 0;
 }
