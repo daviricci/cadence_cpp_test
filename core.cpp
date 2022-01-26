@@ -83,4 +83,34 @@ namespace core {
     }
 
 
+    Bridge::Bridge() {}
+
+    std::ofstream &operator<<(std::ofstream &ofs, Bridge b) {
+        ofs<<b.length<<' '<<b.width<<' '<<b.bombs_n<<std::endl;
+        return ofs;
+    }
+
+    std::ifstream &operator>>(std::ifstream &ifs, Bridge &b) {
+        std::string data;
+        int i=0;
+        int j=0;
+        int k=0;
+        double *config[3] = {&b.length, &b.width, &b.bombs_n};
+        std::getline(ifs, data);
+        do{
+            if (data.c_str()[i]==' ' || data.c_str()[i] =='\0'){
+                *config[j] = std::strtof(data.substr(k,i).c_str(),nullptr);
+                k=i+1;
+                j++;
+            }
+            i++;
+        }while ( data.c_str()[i]!='\0');
+        *config[j] = std::strtof(data.substr(k,i).c_str(),nullptr);
+        return ifs;
+    }
+
+    std::ostream &operator<<(std::ostream &os, Bridge &b) {
+        os<<b.length<<' '<<b.width<<' '<<b.bombs_n<<std::endl;
+        return os;
+    }
 }
