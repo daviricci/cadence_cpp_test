@@ -4,11 +4,13 @@
 
 #ifndef _CADENCE_CPP_CORE_H
 #define _CADENCE_CPP_CORE_H
+
 #include <iostream>
 #include <fstream>
 #include <map>
 #include <vector>
 #include <string>
+#include <list>
 
 namespace core {
     class Bomb {
@@ -21,6 +23,8 @@ namespace core {
 
         bool insert_bomb(Bomb *bomb);
 
+        double get_min_dist_between_out_bomb_and_connected_bombs(Bomb *out_bomb, double &min_distance);
+
     public:
         Bomb();
 
@@ -28,9 +32,12 @@ namespace core {
 
         ~Bomb();
 
-        void get_data(double &x, double &y, double &r);
+        void get_xyr(double &x, double &y, double &r);
 
         bool it_is_connected(Bomb *bomb, bool insert = true);
+
+
+        double get_min_dist_between_group_of_bombs(Bomb *out_bomb, double &min_distance);
 
         friend std::ofstream &operator<<(std::ofstream &ofs, Bomb b);
 
@@ -44,6 +51,7 @@ namespace core {
         double width;
         double length;
         double bombs_n;
+        bool destroyed;
     public:
         Bridge();
 
@@ -56,29 +64,45 @@ namespace core {
         friend std::ifstream &operator>>(std::ifstream &ifs, Bridge &b);
 
         friend std::ostream &operator<<(std::ostream &os, Bridge &b);
+
+        double get_length();
+
+        double get_width();
+
+        void set_destroyed(bool b);
+
+        bool it_is_destroyed();
     };
 
     class BridgeAndBombsManipulator {
     private:
         Bridge bridge;
-        std::vector<Bomb *> bombs;
+        std::list<Bomb *> bombs;
+        double min_distance;
     public:
         BridgeAndBombsManipulator(std::ifstream &ifs);
 
         ~BridgeAndBombsManipulator();
 
+        void sort_graph_and_evaluate();
+
     };
 
     class Manipulator {
-        private:
-            int n_bridges;
-            std::vector<BridgeAndBombsManipulator*> bridges;
-        public:
-            Manipulator(std::string file);
-            ~Manipulator();
+    private:
+        int n_bridges;
+        std::vector<BridgeAndBombsManipulator *> bridges;
+    public:
+        Manipulator(std::string file);
+
+        ~Manipulator();
+
+        void evaluate();
+
     };
 
-    double calculate_distance_between_bomb_and_vertical(Bomb *b1, double x=0);
+    double calculate_distance_between_bomb_and_vertical(Bomb *b1, double x = 0);
+
     double calculate_distance_between_bombs(Bomb *b1, Bomb *b2);
 }
 
