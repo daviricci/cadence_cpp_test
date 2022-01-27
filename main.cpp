@@ -1,7 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include "core.h"
-
+#include <string>
+#include <stdio.h>
 
 int main() {
     core::Bomb b1(2, 2, 3);

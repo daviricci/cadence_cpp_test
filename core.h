@@ -9,6 +9,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <list>
 
 namespace core {
     class Bomb {
@@ -28,7 +29,7 @@ namespace core {
 
         ~Bomb();
 
-        void get_data(double &x, double &y, double &r);
+        void get_xyr(double &x, double &y, double &r);
 
         bool it_is_connected(Bomb *bomb, bool insert = true);
 
@@ -44,6 +45,7 @@ namespace core {
         double width;
         double length;
         double bombs_n;
+        bool destroyed;
     public:
         Bridge();
 
@@ -56,16 +58,26 @@ namespace core {
         friend std::ifstream &operator>>(std::ifstream &ifs, Bridge &b);
 
         friend std::ostream &operator<<(std::ostream &os, Bridge &b);
+
+        double get_length();
+
+        double get_width();
+
+        void set_destroyed(bool b);
+
+        bool it_is_destroyed();
     };
 
     class BridgeAndBombsManipulator {
     private:
         Bridge bridge;
-        std::vector<Bomb *> bombs;
+        std::list<Bomb *> bombs;
     public:
         BridgeAndBombsManipulator(std::ifstream &ifs);
 
         ~BridgeAndBombsManipulator();
+
+        void sort_graph_and_evaluate();
 
     };
 
