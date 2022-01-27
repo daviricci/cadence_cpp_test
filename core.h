@@ -4,6 +4,7 @@
 
 #ifndef _CADENCE_CPP_CORE_H
 #define _CADENCE_CPP_CORE_H
+
 #include <iostream>
 #include <fstream>
 #include <map>
@@ -22,6 +23,8 @@ namespace core {
 
         bool insert_bomb(Bomb *bomb);
 
+        double get_min_dist_between_out_bomb_and_connected_bombs(Bomb *out_bomb, double &min_distance);
+
     public:
         Bomb();
 
@@ -32,6 +35,9 @@ namespace core {
         void get_xyr(double &x, double &y, double &r);
 
         bool it_is_connected(Bomb *bomb, bool insert = true);
+
+
+        double get_min_dist_between_group_of_bombs(Bomb *out_bomb, double &min_distance);
 
         friend std::ofstream &operator<<(std::ofstream &ofs, Bomb b);
 
@@ -72,6 +78,7 @@ namespace core {
     private:
         Bridge bridge;
         std::list<Bomb *> bombs;
+        double min_distance;
     public:
         BridgeAndBombsManipulator(std::ifstream &ifs);
 
@@ -82,15 +89,20 @@ namespace core {
     };
 
     class Manipulator {
-        private:
-            int n_bridges;
-            std::vector<BridgeAndBombsManipulator*> bridges;
-        public:
-            Manipulator(std::string file);
-            ~Manipulator();
+    private:
+        int n_bridges;
+        std::vector<BridgeAndBombsManipulator *> bridges;
+    public:
+        Manipulator(std::string file);
+
+        ~Manipulator();
+
+        void evaluate();
+
     };
 
-    double calculate_distance_between_bomb_and_vertical(Bomb *b1, double x=0);
+    double calculate_distance_between_bomb_and_vertical(Bomb *b1, double x = 0);
+
     double calculate_distance_between_bombs(Bomb *b1, Bomb *b2);
 }
 
