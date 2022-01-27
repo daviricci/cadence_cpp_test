@@ -1,12 +1,9 @@
-#include <iostream>
-#include <fstream>
 #include "core.h"
 #include <string>
-#include <stdio.h>
 
 int main() {
-    core::Manipulator manipulator("file.txt");
+    core::Manipulator manipulator("input.txt");
     manipulator.evaluate();
-    bool a = true;
+    system("pause");
     return 0;
 }

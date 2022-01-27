@@ -36,7 +36,6 @@ namespace core {
 
         bool it_is_connected(Bomb *bomb, bool insert = true);
 
-
         double get_min_dist_between_group_of_bombs(Bomb *out_bomb, double &min_distance);
 
         friend std::ofstream &operator<<(std::ofstream &ofs, Bomb b);
@@ -84,7 +83,7 @@ namespace core {
 
         ~BridgeAndBombsManipulator();
 
-        void sort_graph_and_evaluate();
+        void sort_graph_and_evaluate(std::ofstream &ofs);
 
     };
 
