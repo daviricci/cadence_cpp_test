@@ -68,7 +68,9 @@ namespace core {
 
     Bomb::Bomb(double x, double y, double r) : x(x), y(y), r(r) { count_connected_bombs = 0; }
 
-    Bomb::~Bomb() {}
+    Bomb::~Bomb() {
+        this->connected_bombs.clear();
+    }
 
     void Bomb::get_xyr(double &x, double &y, double &r) {
         x = this->x;
@@ -232,10 +234,16 @@ namespace core {
     }
 
     BridgeAndBombsManipulator::~BridgeAndBombsManipulator() {
-
+        std::list<Bomb *>::iterator it_bombs = this->bombs.begin();
+        while (it_bombs != this->bombs.cend()) {
+            Bomb *bomb = (Bomb*)*it_bombs;
+            delete bomb;
+            bomb = NULL;
+            it_bombs ++;
+        }
     }
 
-    void BridgeAndBombsManipulator::sort_graph_and_evaluate() {
+    void BridgeAndBombsManipulator::sort_graph_and_evaluate(std::ofstream &ofs) {
         std::list<Bomb *> bombs_copy = this->bombs;
         std::list<Bomb *>::iterator it_bombs = bombs_copy.begin();
         std::list<Bomb *> pivos_left, pivos_right;
@@ -292,10 +300,12 @@ namespace core {
 
         if (this->bridge.it_is_destroyed()) {
             std::cout << "Bridge already split" << std::endl;
+            ofs << "Bridge already split" << std::endl;
         } else {
             int min = std::ceil(this->min_distance / 2.);
             std::string out = std::to_string(min);
             std::cout<<out<< std::endl;
+            ofs << out<< std::endl;
         }
     }
 
@@ -311,14 +321,23 @@ namespace core {
         }
     }
 
-    Manipulator::~Manipulator() {}
+    Manipulator::~Manipulator() {
+        std::vector<BridgeAndBombsManipulator *>::iterator it = this->bridges.begin();
+        while(it!=this->bridges.cend()){
+            BridgeAndBombsManipulator *manipulator = (BridgeAndBombsManipulator*) *it;
+            delete manipulator;
+            manipulator = NULL;
+            it++;
+        }
+    }
 
     void Manipulator::evaluate() {
         std::vector<BridgeAndBombsManipulator *>::iterator it = this->bridges.begin();
         BridgeAndBombsManipulator *manipulator;
+        std::ofstream ofs("output.txt");
         while (it != this->bridges.cend()) {
             manipulator = (BridgeAndBombsManipulator *) *it;
-            manipulator->sort_graph_and_evaluate();
+            manipulator->sort_graph_and_evaluate(ofs);
             it++;
         }
     }
