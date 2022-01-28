@@ -23,7 +23,7 @@ namespace core {
 
         bool insert_bomb(Bomb *bomb);
 
-        double get_min_dist_between_out_bomb_and_connected_bombs(Bomb *out_bomb, double &min_distance);
+        double get_min_dist_between_out_bomb_and_connected_bombs(Bomb *out_bomb, Bomb *own_bomb, double &min_distance);
 
     public:
         Bomb();

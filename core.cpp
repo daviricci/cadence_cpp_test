@@ -79,33 +79,34 @@ namespace core {
         r = this->r;
     }
 
-    double Bomb::get_min_dist_between_out_bomb_and_connected_bombs(Bomb *out_bomb, double &min_distance) {
-        std::map<Bomb *, int>::iterator it = this->connected_bombs.begin();
-        double x, y, r1, r2, min_local;
-        while (it != this->connected_bombs.cend()) {
+    double Bomb::get_min_dist_between_out_bomb_and_connected_bombs(Bomb *out_bomb, Bomb *own_bomb, double &min_distance) {
+        std::map<Bomb *, int>::iterator it = own_bomb->connected_bombs.begin();
+        double local_dist;
+        double x_n,y_n,r_1,r_2;
+        out_bomb->get_xyr(x_n,y_n,r_1);
+        own_bomb->get_xyr(x_n, y_n, r_2);
+        local_dist = calculate_distance_between_bombs(own_bomb,out_bomb) - r_1 - r_2;
+        local_dist = local_dist<0?0:local_dist;
+        min_distance = min_distance<local_dist?min_distance:local_dist;
+        while (it != own_bomb->connected_bombs.cend()) {
             Bomb *thr_bomb =(Bomb*) it->first;
-            out_bomb->get_xyr(x, y, r1);
-            thr_bomb->get_xyr(x, y, r2);
-            min_local = calculate_distance_between_bombs(out_bomb, thr_bomb) - r1 - r2;
-            min_local = min_local < 0. ? 0. : min_local;
-            min_distance = min_local < min_distance ? min_local : min_distance;
-            thr_bomb->get_min_dist_between_out_bomb_and_connected_bombs(out_bomb, min_distance);
+            thr_bomb->get_min_dist_between_out_bomb_and_connected_bombs(out_bomb, thr_bomb,min_distance);
+            out_bomb->get_xyr(x_n,y_n,r_1);
+            thr_bomb->get_xyr(x_n, y_n, r_2);
+            local_dist = calculate_distance_between_bombs(thr_bomb,out_bomb) - r_1 - r_2;
+            local_dist = local_dist<0?0:local_dist;
+            min_distance = min_distance<local_dist?min_distance:local_dist;
             it++;
         }
         return min_distance;
     }
 
     double Bomb::get_min_dist_between_group_of_bombs(Bomb *out_bomb, double &min_distance) {
-        double x, y, r1, r2, min_local;
-        out_bomb->get_xyr(x, y, r1);
-        this->get_xyr(x, y, r2);
-        min_local = calculate_distance_between_bombs(out_bomb, this) - r1 - r2;
-        min_local = min_local < 0. ? 0. : min_local;
-        min_distance = min_local < min_distance ? min_local : min_distance;
         std::map<Bomb *, int>::iterator it = out_bomb->connected_bombs.begin();
+        this->get_min_dist_between_out_bomb_and_connected_bombs(out_bomb, this,min_distance);
         while (it != out_bomb->connected_bombs.cend()) {
             Bomb *thr_bomb = it->first;
-            this->get_min_dist_between_out_bomb_and_connected_bombs(thr_bomb, min_distance);
+            this->get_min_dist_between_out_bomb_and_connected_bombs(out_bomb, this, min_distance);
             this->get_min_dist_between_group_of_bombs(thr_bomb, min_distance);
             it++;
         }
@@ -117,7 +118,6 @@ namespace core {
         if (it == this->connected_bombs.cend()) {
             this->count_connected_bombs += 1;
             this->connected_bombs.insert(std::pair<Bomb *, int>(bomb, this->count_connected_bombs));
-            bomb->it_is_connected(this);
             return true;
         }
         return false;
