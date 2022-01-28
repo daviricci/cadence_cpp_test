@@ -100,9 +100,6 @@ namespace core {
 
     };
 
-    double calculate_distance_between_bomb_and_vertical(Bomb *b1, double x = 0);
-
-    double calculate_distance_between_bombs(Bomb *b1, Bomb *b2);
 }
 
 

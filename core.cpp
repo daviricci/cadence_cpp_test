@@ -7,7 +7,7 @@
 
 namespace core {
 
-    double calculate_distance_between_bombs(Bomb *b1, Bomb *b2) {
+    double calculate_distance_between_center_bombs(Bomb *b1, Bomb *b2) {
         double x_1, y_1, r_1;
         b1->get_xyr(x_1, y_1, r_1);
         double x_2, y_2, r_2;
@@ -15,11 +15,28 @@ namespace core {
         return std::sqrt((x_1 - x_2) * (x_1 - x_2) + (y_1 - y_2) * (y_1 - y_2));
     }
 
-    double calculate_distance_between_bomb_and_vertical(Bomb *b1, double x) {
+    double calculate_min_dist_between_bombs(Bomb *b1, Bomb *b2){
+        double x_n,y_n,r_1,r_2, dist;
+        b1->get_xyr(x_n,y_n,r_1);
+        b2->get_xyr(x_n, y_n, r_2);
+        dist = calculate_distance_between_center_bombs(b1, b2) - r_1 - r_2;
+        dist = dist<0.?0.:dist;
+        return dist;
+    }
+
+    double calculate_distance_between_center_bomb_and_vertical(Bomb *b1, double x=0) {
         double x_1, y_1, r_1;
         b1->get_xyr(x_1, y_1, r_1);
         double x_2 = x, y_2 = y_1;
         return std::sqrt((x_1 - x_2) * (x_1 - x_2) + (y_1 - y_2) * (y_1 - y_2));
+    }
+
+    double calulate_min_dist_between_bomb_and_vertical(Bomb *b1, double x=0){
+        double x_1, y_1, r_1, dist;
+        b1->get_xyr(x_1, y_1, r_1);
+        dist = calculate_distance_between_center_bomb_and_vertical(b1, x) - r_1;
+        dist = dist<0.?0.:dist;
+        return dist;
     }
 
     bool BuildTheGraph(Bomb *pivo, std::map<Bomb *, int> &bombs, double x, double &min_dist_to_side) {
@@ -29,10 +46,7 @@ namespace core {
             thr_bomb = (Bomb *) it_bombs->first;
             if (pivo->it_is_connected(thr_bomb)) {
                 bombs.erase(thr_bomb);
-                double x_b, y_b, r;
-                thr_bomb->get_xyr(x_b, y_b, r);
-                double local_dist = calculate_distance_between_bomb_and_vertical(thr_bomb, x) - r;
-                local_dist = local_dist < 0 ? 0 : local_dist;
+                double local_dist = calulate_min_dist_between_bomb_and_vertical(thr_bomb, x);
                 min_dist_to_side = local_dist < min_dist_to_side ? local_dist : min_dist_to_side;
                 BuildTheGraph(thr_bomb, bombs, x, min_dist_to_side);
                 it_bombs = bombs.begin();
@@ -49,9 +63,7 @@ namespace core {
         while (it_pivos != pivos.cend()) {
             pivo = *it_pivos;
             bombs.erase(pivo);
-            double x_b, y_b, r;
-            pivo->get_xyr(x_b, y_b, r);
-            double local_dist = calculate_distance_between_bomb_and_vertical(pivo, x) - r;
+            double local_dist = calulate_min_dist_between_bomb_and_vertical(pivo, x);
             local_dist = local_dist < 0 ? 0 : local_dist;
             min_dist_to_side = local_dist < min_dist_to_side ? local_dist : min_dist_to_side;
             BuildTheGraph(pivo, bombs, x, min_dist_to_side);
@@ -82,19 +94,12 @@ namespace core {
     double Bomb::get_min_dist_between_out_bomb_and_connected_bombs(Bomb *out_bomb, Bomb *own_bomb, double &min_distance) {
         std::map<Bomb *, int>::iterator it = own_bomb->connected_bombs.begin();
         double local_dist;
-        double x_n,y_n,r_1,r_2;
-        out_bomb->get_xyr(x_n,y_n,r_1);
-        own_bomb->get_xyr(x_n, y_n, r_2);
-        local_dist = calculate_distance_between_bombs(own_bomb,out_bomb) - r_1 - r_2;
-        local_dist = local_dist<0?0:local_dist;
+        local_dist = calculate_min_dist_between_bombs(out_bomb, own_bomb);
         min_distance = min_distance<local_dist?min_distance:local_dist;
         while (it != own_bomb->connected_bombs.cend()) {
             Bomb *thr_bomb =(Bomb*) it->first;
             thr_bomb->get_min_dist_between_out_bomb_and_connected_bombs(out_bomb, thr_bomb,min_distance);
-            out_bomb->get_xyr(x_n,y_n,r_1);
-            thr_bomb->get_xyr(x_n, y_n, r_2);
-            local_dist = calculate_distance_between_bombs(thr_bomb,out_bomb) - r_1 - r_2;
-            local_dist = local_dist<0?0:local_dist;
+            local_dist = calculate_min_dist_between_bombs(out_bomb, own_bomb);
             min_distance = min_distance<local_dist?min_distance:local_dist;
             it++;
         }
@@ -127,7 +132,7 @@ namespace core {
         if (bomb == this) return false;
         double x_1, y_1, r_1;
         bomb->get_xyr(x_1, y_1, r_1);
-        double dist = calculate_distance_between_bombs(this, bomb);
+        double dist = calculate_distance_between_center_bombs(this, bomb);
         if (dist <= r_1 + this->r) {
             if (insert) {
                 insert_bomb(bomb);
@@ -259,12 +264,12 @@ namespace core {
         while (it_bombs != bombs_copy.cend()) {
             thr_bomb = (Bomb *) it_bombs->first;
             thr_bomb->get_xyr(x, y, r);
-            if ((calculate_distance_between_bomb_and_vertical(thr_bomb, this->bridge.get_width()) <= r) &
-                (calculate_distance_between_bomb_and_vertical(thr_bomb, 0) <= r)) {
+            if ((calculate_distance_between_center_bomb_and_vertical(thr_bomb, this->bridge.get_width()) <= r) &
+                (calculate_distance_between_center_bomb_and_vertical(thr_bomb, 0) <= r)) {
                 this->bridge.set_destroyed(true);
-            } else if (calculate_distance_between_bomb_and_vertical(thr_bomb, 0) <= r) {
+            } else if (calculate_distance_between_center_bomb_and_vertical(thr_bomb, 0) <= r) {
                 pivos_left.push_back((Bomb *) it_bombs->first);
-            } else if (calculate_distance_between_bomb_and_vertical(thr_bomb, this->bridge.get_width()) <= r) {
+            } else if (calculate_distance_between_center_bomb_and_vertical(thr_bomb, this->bridge.get_width()) <= r) {
                 pivos_right.push_back((Bomb *) it_bombs->first);
             }
             it_bombs++;
