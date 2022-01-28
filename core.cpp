@@ -269,7 +269,7 @@ namespace core {
 
     void BridgeAndBombsManipulator::init_graphs(std::map<Bomb *, int> &bombs_copy, std::list<Bomb *> &pivos_left,
                                                 std::list<Bomb *> &pivos_right, double &min_distance_to_right,
-                                                double &min_distance_to_left){
+                                                double &min_distance_to_left) {
         if ((!pivos_left.empty()) && (!this->bridge.it_is_destroyed())) {
             BuildTheGraphs(pivos_left, bombs_copy, this->bridge.get_width(), min_distance_to_right);
             if (min_distance_to_right == 0.) {
@@ -287,7 +287,7 @@ namespace core {
     }
 
     void BridgeAndBombsManipulator::calc_dist_between_graphs_left_and_right(std::list<Bomb *> &pivos_left,
-                                                                            std::list<Bomb *> &pivos_right){
+                                                                            std::list<Bomb *> &pivos_right) {
         Bomb *left, *right;
         if (!this->bridge.it_is_destroyed() && (!pivos_left.empty()) && (!pivos_right.empty())) {
             std::list<Bomb *>::iterator it_left = pivos_left.begin();
@@ -305,13 +305,13 @@ namespace core {
         }
     }
 
-    void BridgeAndBombsManipulator::test_min_dists(double &min_distance_to_left, double &min_distance_to_right){
+    void BridgeAndBombsManipulator::test_min_dists(double &min_distance_to_left, double &min_distance_to_right) {
         this->min_distance = this->min_distance < min_distance_to_left ? this->min_distance : min_distance_to_left;
         this->min_distance = this->min_distance < min_distance_to_right ? this->min_distance : min_distance_to_right;
         (this->min_distance == 0.) ? this->bridge.set_destroyed(true) : void();
     }
 
-    void BridgeAndBombsManipulator::plot_final_result(std::ofstream &ofs){
+    void BridgeAndBombsManipulator::plot_final_result(std::ofstream &ofs) {
         if (this->bridge.it_is_destroyed()) {
             std::cout << "Bridge already split" << std::endl;
             ofs << "Bridge already split" << std::endl;
