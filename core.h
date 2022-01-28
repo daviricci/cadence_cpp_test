@@ -23,7 +23,7 @@ namespace core {
 
         bool insert_bomb(Bomb *bomb);
 
-        double get_min_dist_between_out_bomb_and_connected_bombs(Bomb *out_bomb, double &min_distance);
+        double get_min_dist_between_out_bomb_and_connected_bombs(Bomb *out_bomb, Bomb *own_bomb, double &min_distance);
 
     public:
         Bomb();
@@ -76,8 +76,20 @@ namespace core {
     class BridgeAndBombsManipulator {
     private:
         Bridge bridge;
-        std::list<Bomb *> bombs;
+        std::map<Bomb *, int> bombs;
         double min_distance;
+
+        void init_pivos(std::map<Bomb *, int> &bombs_copy, std::list<Bomb *> &pivos_left,
+                        std::list<Bomb *> &pivos_right);
+
+        void init_graphs(std::map<Bomb *, int> &bombs_copy, std::list<Bomb *> &pivos_left, std::list<Bomb *> &pivos_right, double &min_distance_to_right, double &min_distance_to_left);
+
+        void calc_dist_between_graphs_left_and_right(std::list<Bomb *> &pivos_left, std::list<Bomb *> &pivos_right);
+
+        void test_min_dists(double &min_distance_to_right, double &min_distance_to_left);
+
+        void plot_final_result(std::ofstream &ofs);
+
     public:
         BridgeAndBombsManipulator(std::ifstream &ifs);
 
@@ -100,9 +112,6 @@ namespace core {
 
     };
 
-    double calculate_distance_between_bomb_and_vertical(Bomb *b1, double x = 0);
-
-    double calculate_distance_between_bombs(Bomb *b1, Bomb *b2);
 }
 
 
