@@ -76,7 +76,7 @@ namespace core {
     class BridgeAndBombsManipulator {
     private:
         Bridge bridge;
-        std::list<Bomb *> bombs;
+        std::map<Bomb *, int> bombs;
         double min_distance;
     public:
         BridgeAndBombsManipulator(std::ifstream &ifs);

@@ -22,13 +22,13 @@ namespace core {
         return std::sqrt((x_1 - x_2) * (x_1 - x_2) + (y_1 - y_2) * (y_1 - y_2));
     }
 
-    bool BuildTheGraph(Bomb *pivo, std::list<Bomb *> &bombs, double x, double &min_dist_to_side) {
-        std::list<Bomb *>::iterator it_bombs = bombs.begin();
+    bool BuildTheGraph(Bomb *pivo, std::map<Bomb *, int> &bombs, double x, double &min_dist_to_side) {
+        std::map<Bomb *, int>::iterator it_bombs = bombs.begin();
         Bomb *thr_bomb = NULL;
         while (it_bombs != bombs.cend()) {
-            thr_bomb = (Bomb *) *it_bombs;
+            thr_bomb = (Bomb *) it_bombs->first;
             if (pivo->it_is_connected(thr_bomb)) {
-                bombs.remove(thr_bomb);
+                bombs.erase(thr_bomb);
                 double x_b, y_b, r;
                 thr_bomb->get_xyr(x_b, y_b, r);
                 double local_dist = calculate_distance_between_bomb_and_vertical(thr_bomb, x) - r;
@@ -43,11 +43,12 @@ namespace core {
         return true;
     }
 
-    bool BuildTheGraphs(std::list<Bomb *> pivos, std::list<Bomb *> bombs, double x, double &min_dist_to_side) {
+    bool BuildTheGraphs(std::list<Bomb *> pivos, std::map<Bomb *, int> bombs, double x, double &min_dist_to_side) {
         Bomb *pivo;
         std::list<Bomb *>::iterator it_pivos = pivos.begin();
         while (it_pivos != pivos.cend()) {
             pivo = *it_pivos;
+            bombs.erase(pivo);
             double x_b, y_b, r;
             pivo->get_xyr(x_b, y_b, r);
             double local_dist = calculate_distance_between_bomb_and_vertical(pivo, x) - r;
@@ -228,15 +229,15 @@ namespace core {
         while (n < this->bridge.get_number_bombs()) {
             Bomb *bomb = new Bomb();
             ifs >> *bomb;
-            this->bombs.push_back(bomb);
+            this->bombs.insert(std::pair<Bomb*, int>(bomb, 0));
             n += 1;
         }
     }
 
     BridgeAndBombsManipulator::~BridgeAndBombsManipulator() {
-        std::list<Bomb *>::iterator it_bombs = this->bombs.begin();
+        std::map<Bomb *, int>::iterator it_bombs = this->bombs.begin();
         while (it_bombs != this->bombs.cend()) {
-            Bomb *bomb = (Bomb*)*it_bombs;
+            Bomb *bomb = (Bomb*)it_bombs->first;
             delete bomb;
             bomb = NULL;
             it_bombs ++;
@@ -244,8 +245,8 @@ namespace core {
     }
 
     void BridgeAndBombsManipulator::sort_graph_and_evaluate(std::ofstream &ofs) {
-        std::list<Bomb *> bombs_copy = this->bombs;
-        std::list<Bomb *>::iterator it_bombs = bombs_copy.begin();
+        std::map<Bomb *, int> bombs_copy = this->bombs;
+        std::map<Bomb *, int>::iterator it_bombs = bombs_copy.begin();
         std::list<Bomb *> pivos_left, pivos_right;
         pivos_left.clear();
         pivos_right.clear();
@@ -256,15 +257,15 @@ namespace core {
         this->min_distance = this->bridge.get_width();
         double x, y, r;
         while (it_bombs != bombs_copy.cend()) {
-            thr_bomb = (Bomb *) *it_bombs;
+            thr_bomb = (Bomb *) it_bombs->first;
             thr_bomb->get_xyr(x, y, r);
             if ((calculate_distance_between_bomb_and_vertical(thr_bomb, this->bridge.get_width()) <= r) &
                 (calculate_distance_between_bomb_and_vertical(thr_bomb, 0) <= r)) {
                 this->bridge.set_destroyed(true);
             } else if (calculate_distance_between_bomb_and_vertical(thr_bomb, 0) <= r) {
-                pivos_left.push_back((Bomb *) *it_bombs);
+                pivos_left.push_back((Bomb *) it_bombs->first);
             } else if (calculate_distance_between_bomb_and_vertical(thr_bomb, this->bridge.get_width()) <= r) {
-                pivos_right.push_back((Bomb *) *it_bombs);
+                pivos_right.push_back((Bomb *) it_bombs->first);
             }
             it_bombs++;
         }
@@ -292,11 +293,13 @@ namespace core {
                     left->get_min_dist_between_group_of_bombs(right, this->min_distance);
                     it_right++;
                 }
+                it_right = pivos_right.begin();
                 it_left++;
             }
-            this->min_distance = this->min_distance < min_distance_to_left ? this->min_distance : min_distance_to_left;
-            this->min_distance = this->min_distance < min_distance_to_right ? this->min_distance : min_distance_to_right;
         }
+
+        this->min_distance = this->min_distance < min_distance_to_left ? this->min_distance : min_distance_to_left;
+        this->min_distance = this->min_distance < min_distance_to_right ? this->min_distance : min_distance_to_right;
 
         if (this->bridge.it_is_destroyed()) {
             std::cout << "Bridge already split" << std::endl;
