@@ -64,7 +64,6 @@ namespace core {
             pivo = *it_pivos;
             bombs.erase(pivo);
             double local_dist = calulate_min_dist_between_bomb_and_vertical(pivo, x);
-            local_dist = local_dist < 0 ? 0 : local_dist;
             min_dist_to_side = local_dist < min_dist_to_side ? local_dist : min_dist_to_side;
             BuildTheGraph(pivo, bombs, x, min_dist_to_side);
             it_pivos++;
@@ -260,16 +259,14 @@ namespace core {
         double min_distance_to_left = this->bridge.get_width();
         double min_distance_to_right = this->bridge.get_width();
         this->min_distance = this->bridge.get_width();
-        double x, y, r;
         while (it_bombs != bombs_copy.cend()) {
             thr_bomb = (Bomb *) it_bombs->first;
-            thr_bomb->get_xyr(x, y, r);
-            if ((calculate_distance_between_center_bomb_and_vertical(thr_bomb, this->bridge.get_width()) <= r) &
-                (calculate_distance_between_center_bomb_and_vertical(thr_bomb, 0) <= r)) {
+            if ((calulate_min_dist_between_bomb_and_vertical(thr_bomb, this->bridge.get_width()) == 0.) &
+                (calulate_min_dist_between_bomb_and_vertical(thr_bomb, 0.) == 0.)) {
                 this->bridge.set_destroyed(true);
-            } else if (calculate_distance_between_center_bomb_and_vertical(thr_bomb, 0) <= r) {
+            } else if (calulate_min_dist_between_bomb_and_vertical(thr_bomb, 0.) == 0.) {
                 pivos_left.push_back((Bomb *) it_bombs->first);
-            } else if (calculate_distance_between_center_bomb_and_vertical(thr_bomb, this->bridge.get_width()) <= r) {
+            } else if (calulate_min_dist_between_bomb_and_vertical(thr_bomb, this->bridge.get_width()) == 0.) {
                 pivos_right.push_back((Bomb *) it_bombs->first);
             }
             it_bombs++;
@@ -305,6 +302,7 @@ namespace core {
 
         this->min_distance = this->min_distance < min_distance_to_left ? this->min_distance : min_distance_to_left;
         this->min_distance = this->min_distance < min_distance_to_right ? this->min_distance : min_distance_to_right;
+        (this->min_distance == 0.)?this->bridge.set_destroyed(true):void();
 
         if (this->bridge.it_is_destroyed()) {
             std::cout << "Bridge already split" << std::endl;
