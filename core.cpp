@@ -15,27 +15,27 @@ namespace core {
         return std::sqrt((x_1 - x_2) * (x_1 - x_2) + (y_1 - y_2) * (y_1 - y_2));
     }
 
-    double calculate_min_dist_between_bombs(Bomb *b1, Bomb *b2){
-        double x_n,y_n,r_1,r_2, dist;
-        b1->get_xyr(x_n,y_n,r_1);
+    double calculate_min_dist_between_bombs(Bomb *b1, Bomb *b2) {
+        double x_n, y_n, r_1, r_2, dist;
+        b1->get_xyr(x_n, y_n, r_1);
         b2->get_xyr(x_n, y_n, r_2);
         dist = calculate_distance_between_center_bombs(b1, b2) - r_1 - r_2;
-        dist = dist<0.?0.:dist;
+        dist = dist < 0. ? 0. : dist;
         return dist;
     }
 
-    double calculate_distance_between_center_bomb_and_vertical(Bomb *b1, double x=0) {
+    double calculate_distance_between_center_bomb_and_vertical(Bomb *b1, double x = 0) {
         double x_1, y_1, r_1;
         b1->get_xyr(x_1, y_1, r_1);
         double x_2 = x, y_2 = y_1;
         return std::sqrt((x_1 - x_2) * (x_1 - x_2) + (y_1 - y_2) * (y_1 - y_2));
     }
 
-    double calulate_min_dist_between_bomb_and_vertical(Bomb *b1, double x=0){
+    double calulate_min_dist_between_bomb_and_vertical(Bomb *b1, double x = 0) {
         double x_1, y_1, r_1, dist;
         b1->get_xyr(x_1, y_1, r_1);
         dist = calculate_distance_between_center_bomb_and_vertical(b1, x) - r_1;
-        dist = dist<0.?0.:dist;
+        dist = dist < 0. ? 0. : dist;
         return dist;
     }
 
@@ -90,16 +90,17 @@ namespace core {
         r = this->r;
     }
 
-    double Bomb::get_min_dist_between_out_bomb_and_connected_bombs(Bomb *out_bomb, Bomb *own_bomb, double &min_distance) {
+    double
+    Bomb::get_min_dist_between_out_bomb_and_connected_bombs(Bomb *out_bomb, Bomb *own_bomb, double &min_distance) {
         std::map<Bomb *, int>::iterator it = own_bomb->connected_bombs.begin();
         double local_dist;
         local_dist = calculate_min_dist_between_bombs(out_bomb, own_bomb);
-        min_distance = min_distance<local_dist?min_distance:local_dist;
+        min_distance = min_distance < local_dist ? min_distance : local_dist;
         while (it != own_bomb->connected_bombs.cend()) {
-            Bomb *thr_bomb =(Bomb*) it->first;
-            thr_bomb->get_min_dist_between_out_bomb_and_connected_bombs(out_bomb, thr_bomb,min_distance);
+            Bomb *thr_bomb = (Bomb *) it->first;
+            thr_bomb->get_min_dist_between_out_bomb_and_connected_bombs(out_bomb, thr_bomb, min_distance);
             local_dist = calculate_min_dist_between_bombs(out_bomb, own_bomb);
-            min_distance = min_distance<local_dist?min_distance:local_dist;
+            min_distance = min_distance < local_dist ? min_distance : local_dist;
             it++;
         }
         return min_distance;
@@ -107,7 +108,7 @@ namespace core {
 
     double Bomb::get_min_dist_between_group_of_bombs(Bomb *out_bomb, double &min_distance) {
         std::map<Bomb *, int>::iterator it = out_bomb->connected_bombs.begin();
-        this->get_min_dist_between_out_bomb_and_connected_bombs(out_bomb, this,min_distance);
+        this->get_min_dist_between_out_bomb_and_connected_bombs(out_bomb, this, min_distance);
         while (it != out_bomb->connected_bombs.cend()) {
             Bomb *thr_bomb = it->first;
             this->get_min_dist_between_out_bomb_and_connected_bombs(out_bomb, this, min_distance);
@@ -233,7 +234,7 @@ namespace core {
         while (n < this->bridge.get_number_bombs()) {
             Bomb *bomb = new Bomb();
             ifs >> *bomb;
-            this->bombs.insert(std::pair<Bomb*, int>(bomb, 0));
+            this->bombs.insert(std::pair<Bomb *, int>(bomb, 0));
             n += 1;
         }
     }
@@ -241,24 +242,17 @@ namespace core {
     BridgeAndBombsManipulator::~BridgeAndBombsManipulator() {
         std::map<Bomb *, int>::iterator it_bombs = this->bombs.begin();
         while (it_bombs != this->bombs.cend()) {
-            Bomb *bomb = (Bomb*)it_bombs->first;
+            Bomb *bomb = (Bomb *) it_bombs->first;
             delete bomb;
             bomb = NULL;
-            it_bombs ++;
+            it_bombs++;
         }
     }
 
-    void BridgeAndBombsManipulator::sort_graph_and_evaluate(std::ofstream &ofs) {
-        std::map<Bomb *, int> bombs_copy = this->bombs;
-        std::map<Bomb *, int>::iterator it_bombs = bombs_copy.begin();
-        std::list<Bomb *> pivos_left, pivos_right;
-        pivos_left.clear();
-        pivos_right.clear();
+    void BridgeAndBombsManipulator::init_pivos(std::map<Bomb *, int> &bombs_copy, std::list<Bomb *> &pivos_left,
+                                               std::list<Bomb *> &pivos_right) {
         Bomb *thr_bomb = NULL;
-        Bomb *left, *right;
-        double min_distance_to_left = this->bridge.get_width();
-        double min_distance_to_right = this->bridge.get_width();
-        this->min_distance = this->bridge.get_width();
+        std::map<Bomb *, int>::iterator it_bombs = bombs_copy.begin();
         while (it_bombs != bombs_copy.cend()) {
             thr_bomb = (Bomb *) it_bombs->first;
             if ((calulate_min_dist_between_bomb_and_vertical(thr_bomb, this->bridge.get_width()) == 0.) &
@@ -271,6 +265,11 @@ namespace core {
             }
             it_bombs++;
         }
+    }
+
+    void BridgeAndBombsManipulator::init_graphs(std::map<Bomb *, int> &bombs_copy, std::list<Bomb *> &pivos_left,
+                                                std::list<Bomb *> &pivos_right, double &min_distance_to_right,
+                                                double &min_distance_to_left){
         if ((!pivos_left.empty()) && (!this->bridge.it_is_destroyed())) {
             BuildTheGraphs(pivos_left, bombs_copy, this->bridge.get_width(), min_distance_to_right);
             if (min_distance_to_right == 0.) {
@@ -285,6 +284,11 @@ namespace core {
                 this->min_distance = 0;
             }
         }
+    }
+
+    void BridgeAndBombsManipulator::calc_dist_between_graphs_left_and_right(std::list<Bomb *> &pivos_left,
+                                                                            std::list<Bomb *> &pivos_right){
+        Bomb *left, *right;
         if (!this->bridge.it_is_destroyed() && (!pivos_left.empty()) && (!pivos_right.empty())) {
             std::list<Bomb *>::iterator it_left = pivos_left.begin();
             std::list<Bomb *>::iterator it_right = pivos_right.begin();
@@ -299,20 +303,39 @@ namespace core {
                 it_left++;
             }
         }
+    }
 
+    void BridgeAndBombsManipulator::test_min_dists(double &min_distance_to_left, double &min_distance_to_right){
         this->min_distance = this->min_distance < min_distance_to_left ? this->min_distance : min_distance_to_left;
         this->min_distance = this->min_distance < min_distance_to_right ? this->min_distance : min_distance_to_right;
-        (this->min_distance == 0.)?this->bridge.set_destroyed(true):void();
+        (this->min_distance == 0.) ? this->bridge.set_destroyed(true) : void();
+    }
 
+    void BridgeAndBombsManipulator::plot_final_result(std::ofstream &ofs){
         if (this->bridge.it_is_destroyed()) {
             std::cout << "Bridge already split" << std::endl;
             ofs << "Bridge already split" << std::endl;
         } else {
             int min = std::ceil(this->min_distance / 2.);
             std::string out = std::to_string(min);
-            std::cout<<out<< std::endl;
-            ofs << out<< std::endl;
+            std::cout << out << std::endl;
+            ofs << out << std::endl;
         }
+    }
+
+    void BridgeAndBombsManipulator::sort_graph_and_evaluate(std::ofstream &ofs) {
+        std::map<Bomb *, int> bombs_copy = this->bombs;
+        std::list<Bomb *> pivos_left, pivos_right;
+        pivos_left.clear();
+        pivos_right.clear();
+        double min_distance_to_left = this->bridge.get_width();
+        double min_distance_to_right = this->bridge.get_width();
+        this->min_distance = this->bridge.get_width();
+        init_pivos(bombs_copy, pivos_left, pivos_right);
+        init_graphs(bombs_copy, pivos_left, pivos_right, min_distance_to_left, min_distance_to_right);
+        calc_dist_between_graphs_left_and_right(pivos_right, pivos_left);
+        test_min_dists(min_distance_to_left, min_distance_to_right);
+        plot_final_result(ofs);
     }
 
     Manipulator::Manipulator(std::string file) {
@@ -329,8 +352,8 @@ namespace core {
 
     Manipulator::~Manipulator() {
         std::vector<BridgeAndBombsManipulator *>::iterator it = this->bridges.begin();
-        while(it!=this->bridges.cend()){
-            BridgeAndBombsManipulator *manipulator = (BridgeAndBombsManipulator*) *it;
+        while (it != this->bridges.cend()) {
+            BridgeAndBombsManipulator *manipulator = (BridgeAndBombsManipulator *) *it;
             delete manipulator;
             manipulator = NULL;
             it++;

@@ -78,6 +78,18 @@ namespace core {
         Bridge bridge;
         std::map<Bomb *, int> bombs;
         double min_distance;
+
+        void init_pivos(std::map<Bomb *, int> &bombs_copy, std::list<Bomb *> &pivos_left,
+                        std::list<Bomb *> &pivos_right);
+
+        void init_graphs(std::map<Bomb *, int> &bombs_copy, std::list<Bomb *> &pivos_left, std::list<Bomb *> &pivos_right, double &min_distance_to_right, double &min_distance_to_left);
+
+        void calc_dist_between_graphs_left_and_right(std::list<Bomb *> &pivos_left, std::list<Bomb *> &pivos_right);
+
+        void test_min_dists(double &min_distance_to_right, double &min_distance_to_left);
+
+        void plot_final_result(std::ofstream &ofs);
+
     public:
         BridgeAndBombsManipulator(std::ifstream &ifs);
 
